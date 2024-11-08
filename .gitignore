@@ -1,6 +1,27 @@
 # Бінарні та об'єктні файли
 *.o
+*.a
 program
 
-# Файли IDE та редакторів
-.vscode/
+# Автоматично згенеровані файли Autotools
+Makefile
+Makefile.in
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+.deps/
+/config.*
+*.tar.gz
+
+# Тимчасові файли збірки
+.dirstamp
+.libs/
+
+# Файли залежностей
+*.Po
+*.Plo

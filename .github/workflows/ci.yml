@@ -1,10 +1,10 @@
 name: C++ CI
 
 on:
-  push:
-    branches: [ '*' ]
-  pull_request:
-    branches: [ '*' ]
+    push:
+      branches: [ '*' ]
+    pull_request:
+      branches: [ '*' ]
 
 jobs:
   build:
@@ -16,13 +16,27 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++ make
+        sudo apt-get install -y g++ make automake autoconf
+
+    - name: Generate build system
+      run: |
+        autoreconf --install
+        ./configure
 
     - name: Build
       run: make
+
+    - name: Create distribution
+      run: make dist
 
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
         name: program
         path: program
+
+    - name: Upload distribution artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: program-dist
+        path: program-*.tar.gz
