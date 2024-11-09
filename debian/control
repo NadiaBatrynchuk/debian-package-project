@@ -1,0 +1,12 @@
+Source: program
+Section: utils
+Priority: optional
+Maintainer: Nadiya Batrynchuk <batrynchuk1197@gmail.com>
+Build-Depends: debhelper (>= 11)
+Standards-Version: 4.6.0.1
+
+Package: program
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: FuncA calculation
+ C++ program implementing FuncA calculation

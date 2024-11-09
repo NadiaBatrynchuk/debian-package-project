@@ -17,6 +17,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y g++ make automake autoconf
+        sudo apt-get install -y devscripts debhelper build-essential
 
     - name: Generate build system
       run: |
@@ -29,6 +30,9 @@ jobs:
     - name: Create distribution
       run: make dist
 
+    - name: Build Debian package
+      run: make deb
+
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
@@ -40,3 +44,9 @@ jobs:
       with:
         name: program-dist
         path: program-*.tar.gz
+
+    - name: Upload Debian package
+      uses: actions/upload-artifact@v4
+      with:
+        name: program-deb
+        path: debian-build/*.deb

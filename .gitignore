@@ -25,3 +25,7 @@ Makefile.in
 # Файли залежностей
 *.Po
 *.Plo
+
+# Debian build files
+debian-build/
+*.deb

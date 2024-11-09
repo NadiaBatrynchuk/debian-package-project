@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	./configure --prefix=/usr
+
+override_dh_auto_build:
+	$(MAKE)
+
+override_dh_auto_clean:
+	-test ! -f Makefile || $(MAKE) distclean
+	rm -f config.log config.status
+	rm -rf autom4te.cache
+
+override_dh_installman:
+	dh_installman debian/program.1
