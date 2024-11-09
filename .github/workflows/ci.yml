@@ -16,8 +16,11 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++ make automake autoconf
-        sudo apt-get install -y devscripts debhelper build-essential
+        sudo apt-get install -y g++ make automake autoconf libgtest-dev cmake devscripts debhelper build-essential
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib
 
     - name: Generate build system
       run: |
@@ -26,6 +29,9 @@ jobs:
 
     - name: Build
       run: make
+    
+    - name: Run tests
+      run: make check
 
     - name: Create distribution
       run: make dist
@@ -50,3 +56,12 @@ jobs:
       with:
         name: program-deb
         path: debian-build/*.deb
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          test-suite.log
+          tests/*.log
+          tests/*.trs

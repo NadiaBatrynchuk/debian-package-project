@@ -2,18 +2,19 @@
 *.o
 *.a
 program
+test_program
 
 # Автоматично згенеровані файли Autotools
 Makefile
 Makefile.in
-/autom4te.cache
-/aclocal.m4
-/compile
-/configure
-/depcomp
-/install-sh
-/missing
-/stamp-h1
+autom4te.cache
+aclocal.m4
+compile
+configure
+depcomp
+install-sh
+missing
+stamp-h1
 .deps/
 /config.*
 *.tar.gz
@@ -26,6 +27,15 @@ Makefile.in
 *.Po
 *.Plo
 
-# Debian build files
+# Білд-файли для Дебіану
 debian-build/
 *.deb
+*.tar.gz
+
+# Тимчасові файли
+*~
+*.swp
+
+# Файли тестів
+/test-*
+/test_*
