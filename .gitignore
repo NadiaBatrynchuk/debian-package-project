@@ -40,3 +40,4 @@ debian-build/
 /test-*
 /test_*my-http-server.tar
 *.tar.gz
+my-http-server.tar
