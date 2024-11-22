@@ -38,4 +38,5 @@ debian-build/
 
 # Файли тестів
 /test-*
-/test_*
+/test_*my-http-server.tar
+*.tar.gz
