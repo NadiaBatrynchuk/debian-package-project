@@ -1,28 +1,29 @@
 # Вказуємо базовий образ
-FROM ubuntu:20.04
+# Етап 1: Збірка
+FROM gcc:latest AS builder
+WORKDIR /app
 
-# Встановлюємо часову зону, щоб уникнути запитів під час apt-get install
-ENV DEBIAN_FRONTEND=noninteractive
+# Копіюємо всі файли з поточного каталогу в контейнер
+COPY . .
 
-# Оновлюємо пакети та встановлюємо необхідні залежності без зайвих додаткових пакетів
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
-    g++ \
-    libboost-all-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Компілюємо програму
+RUN g++ -o main main.cpp FuncA.cpp
 
-# Копіюємо проект у контейнер
-COPY . /usr/src/app
+# Етап 2: Створення фінального образу
+FROM debian:stable-slim
+WORKDIR /app
 
-# Переходимо до каталогу з кодом
-WORKDIR /usr/src/app
+# Копіюємо скомпільований виконуваний файл з етапу збірки
+COPY --from=builder /app/main .
 
-# Використовуємо cmake для побудови проекту з додаванням pthread
-RUN rm -rf build && mkdir build && cd build && cmake .. -DCMAKE_CXX_FLAGS="-pthread" && make
+# Встановлюємо необхідні залежності для запуску програми
+RUN apt-get update && \
+    apt-get install -y libstdc++6 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Вказуємо команду для запуску програми
-CMD ["./build/HttpServer"]
+CMD ["./main"]
+
 
 
 
