@@ -1,29 +1,25 @@
-# Вказуємо базовий образ
-# Етап 1: Збірка
+# Stage 1: Build
 FROM gcc:latest AS builder
 WORKDIR /app
 
-# Копіюємо всі файли з поточного каталогу в контейнер
-COPY . .
+# Завантаження файлів з публічного репозиторію GitHub
+RUN apt-get update && apt-get install -y git \
+    && git clone https://github.com/NadiaBatrynchuk/debian-package-project.git . \
+    && git checkout branchHTTPservMutli
 
-# Компілюємо програму
-RUN g++ -o main main.cpp FuncA.cpp
+# Компіляція програми
+RUN g++ -o main main.cpp FuncA.cpp -static
 
-# Етап 2: Створення фінального образу
-FROM debian:stable-slim
+# Stage 2: Minimal Final Image
+FROM alpine:latest
 WORKDIR /app
 
-# Копіюємо скомпільований виконуваний файл з етапу збірки
+# Копіювання скомпільованого бінарного файлу з попереднього етапу
 COPY --from=builder /app/main .
 
-# Встановлюємо необхідні залежності для запуску програми
-RUN apt-get update && \
-    apt-get install -y libstdc++6 && \
-    rm -rf /var/lib/apt/lists/*
+# Встановлення необхідних бібліотек
+RUN apk add --no-cache libstdc++
 
-# Вказуємо команду для запуску програми
+# Встановлення команди для виконання
 CMD ["./main"]
-
-
-
 
