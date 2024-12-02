@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y git
 
 # Клонуємо репозиторій та переміщуємо необхідні файли
 RUN git clone --branch branchHTTPservMutli https://github.com/NadiaBatrynchuk/debian-package-project.git /repo \
-    && mv /repo/docker-build/* /app/
+    && mv /repo/main.cpp /app/ \
+    && mv /repo/FuncA.cpp /app/ \
+    && mv /repo/FuncA.h /app/
 
 # Компілюємо програму зі статичним лінкуванням
 RUN g++ -o main main.cpp FuncA.cpp -static
