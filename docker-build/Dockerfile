@@ -1,29 +1,29 @@
-# Етап 1: Збірка програми
+# Stage 1: Build
 FROM gcc:latest AS builder
 WORKDIR /app
 
-# Встановлюємо git
-RUN apt-get update && apt-get install -y git
+# Завантаження файлів з публічного репозиторію GitHub
+RUN apt-get update && apt-get install -y git \
+    && git clone https://github.com/NadiaBatrynchuk/debian-package-project.git . \
+    && git checkout branchHTTPservMutli
 
-# Клонуємо репозиторій та переміщуємо необхідні файли
-RUN git clone --branch branchHTTPservMutli https://github.com/NadiaBatrynchuk/debian-package-project.git /repo \
-    && mv /repo/main.cpp /app/ \
-    && mv /repo/FuncA.cpp /app/ \
-    && mv /repo/FuncA.h /app/
+# Копіювання файлів з підпапки docker-build
+RUN cp ./docker-build/main.cpp . && cp ./docker-build/FuncA.cpp . && cp ./docker-build/FuncA.h .
 
-# Компілюємо програму зі статичним лінкуванням
+# Компіляція програми
 RUN g++ -o main main.cpp FuncA.cpp -static
 
-# Етап 2: Мінімальний фінальний образ
+# Stage 2: Minimal Final Image
 FROM alpine:latest
 WORKDIR /app
 
-# Копіюємо виконуваний файл з етапу збірки
+# Копіювання скомпільованого бінарного файлу з попереднього етапу
 COPY --from=builder /app/main .
 
-# Встановлюємо бібліотеку для сумісності
-RUN apk add --no-cache libc6-compat
+# Встановлення необхідних бібліотек
+RUN apk add --no-cache libstdc++
 
-# Запускаємо програму
+# Встановлення команди для виконання
 CMD ["./main"]
+
 
