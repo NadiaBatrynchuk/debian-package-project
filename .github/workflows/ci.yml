@@ -1,67 +1,33 @@
-name: C++ CI
+name: CI Pipeline
 
 on:
-    push:
-      branches: [ '*' ]
-    pull_request:
-      branches: [ '*' ]
+  push:
+    branches:
+      - branchHTTPservMutli
+  pull_request:
+    branches:
+      - branchHTTPservMutli
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y g++ make automake autoconf libgtest-dev cmake devscripts debhelper build-essential
-        cd /usr/src/gtest
-        sudo cmake CMakeLists.txt
-        sudo make
-        sudo cp lib/*.a /usr/lib
+      - name: Set up C++ environment
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
 
-    - name: Generate build system
-      run: |
-        autoreconf --install
-        ./configure
+      - name: Build the project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
 
-    - name: Build
-      run: make
-    
-    - name: Run tests
-      run: make check
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
 
-    - name: Create distribution
-      run: make dist
-
-    - name: Build Debian package
-      run: make deb
-
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: program
-        path: program
-
-    - name: Upload distribution artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: program-dist
-        path: program-*.tar.gz
-
-    - name: Upload Debian package
-      uses: actions/upload-artifact@v4
-      with:
-        name: program-deb
-        path: debian-build/*.deb
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: |
-          test-suite.log
-          tests/*.log
-          tests/*.trs
