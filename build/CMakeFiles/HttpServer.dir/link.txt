@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/HttpServer.dir/HttpServer.cpp.o CMakeFiles/HttpServer.dir/FuncA.cpp.o -o HttpServer 

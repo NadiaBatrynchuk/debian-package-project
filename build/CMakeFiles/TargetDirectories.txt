@@ -1,3 +1,0 @@
-/home/nadia/debian-package-project/build/CMakeFiles/HttpServer.dir
-/home/nadia/debian-package-project/build/CMakeFiles/edit_cache.dir
-/home/nadia/debian-package-project/build/CMakeFiles/rebuild_cache.dir
