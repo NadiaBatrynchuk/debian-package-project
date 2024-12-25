@@ -1,29 +1,28 @@
-# Stage 1: Build
-FROM gcc:12 AS builder
-WORKDIR /app
+# Вказуємо базовий образ
+FROM ubuntu:20.04
 
-# Завантаження файлів з публічного репозиторію GitHub
-RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && git clone https://github.com/NadiaBatrynchuk/debian-package-project.git
+# Встановлюємо часову зону, щоб уникнути запитів під час apt-get install
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Встановлення робочої директорії
-WORKDIR /app/debian-package-project
+# Оновлюємо пакети та встановлюємо необхідні залежності без зайвих додаткових пакетів
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \ 
+    cmake \
+    g++ \
+    libboost-all-dev \
+    git \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && git clone https://github.com/NadiaBatrynchuk/debian-package-project.git /usr/src/app
 
-# Перехід на необхідну гілку репозиторію
+# Переходимо до каталогу з кодом
+WORKDIR /usr/src/app
+
+# Перехід на необхідну гілку репозиторія (якщо потрібно)
 RUN git checkout branchHTTPservMutli
 
-# Копіювання файлів з папки docker-build
-COPY ./docker-build/FuncA.cpp ./docker-build/FuncA.h ./docker-build/main.cpp ./
+# Використовуємо cmake для побудови проекту з додаванням pthread
+RUN rm -rf build && mkdir build && cd build && cmake .. -DCMAKE_CXX_FLAGS="-pthread" && make
 
-# Компіляція програми
-RUN g++ -o HttpServer main.cpp FuncA.cpp -static
-
-# Stage 2: Minimal Final Image
-FROM alpine:3.18
-WORKDIR /app
-
-RUN apk add --no-cache libstdc++ libc6-compat
-
-COPY --from=builder /app/debian-package-project/build/ ./build/
-
+# Вказуємо команду для запуску програми
 CMD ["./build/HttpServer"]

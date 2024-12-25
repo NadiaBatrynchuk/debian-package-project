@@ -8,3 +8,4 @@ int main() {
     std::cout << "FuncA returns: " << func.calculate(n) << std::endl;
     return 0;
 }
+
