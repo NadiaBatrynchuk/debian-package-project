@@ -21,6 +21,7 @@ jobs:
 
       - name: Build the project
         run: |
+          rm -rf build
           mkdir build
           cd build
           cmake ..
