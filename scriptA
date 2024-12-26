@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Configuration
+IMAGE="nadiya1010/my-http-server:latest"
+NETWORK="loadbalancer_net"
+CHECK_INTERVAL=10          # Time interval to check CPU usage (in seconds)
+BUSY_THRESHOLD=60          # CPU usage % to consider as "busy"
+BUSY_TIME_LIMIT=120        # Time in seconds a container must remain busy
+IDLE_TIME_LIMIT=120        # Time in seconds a container can stay idle
+
+busy_time_srv1=0
+busy_time_srv2=0
+busy_time_srv3=0
+idle_time_srv1=0
+idle_time_srv2=0
+idle_time_srv3=0
+
+last_update_check=$(date +%s)
+
+start_container() {
+    local name=$1
+    local cpu=$2
+    echo "Starting container $name on CPU core #$cpu..."
+    docker run -d --name $name --cpuset-cpus="$cpu" --network $NETWORK $IMAGE
+}
+
+stop_container() {
+    local name=$1
+    echo "Stopping container $name..."
+    docker stop $name && docker rm $name
+}
+
+get_cpu_usage() {
+    local name=$1
+    docker stats --no-stream --format "{{.CPUPerc}}" $name 2>/dev/null | sed 's/%//g' | awk '{if ($1 == "") print 0; else print $1}'
+}
+
+check_for_updates() {
+    echo "Checking for new image version..."
+    if docker pull $IMAGE | grep -q "Downloaded newer image"; then
+        echo "New version of $IMAGE detected. Updating containers..."
+        update_containers
+    fi
+}
+
+update_containers() {
+    local containers=("srv1" "srv2" "srv3")
+    for container in "${containers[@]}"; do
+        if docker ps | grep -q $container; then
+            echo "Updating $container..."
+            docker stop $container && docker rm $container
+            start_container $container "0"
+            sleep 5
+        fi
+    done
+    echo "All containers updated successfully!"
+}
+
+# Start srv1 on CPU core 0
+start_container "srv1" "0"
+
+# Main monitoring loop
+while true; do
+    current_time=$(date +%s)
+    if (( current_time - last_update_check >= UPDATE_CHECK_INTERVAL )); then
+        check_for_updates
+        last_update_check=$current_time
+    fi
+
+    for container in "srv1" "srv2" "srv3"; do
+        if docker ps | grep -q $container; then
+            cpu_usage=$(get_cpu_usage $container)
+            echo "Container $container CPU Usage: $cpu_usage%"
+
+            if (( $(echo "$cpu_usage > $BUSY_THRESHOLD" | bc -l) )); then
+                busy_time[$container]=$((busy_time[$container] + CHECK_INTERVAL))
+                idle_time[$container]=0
+            else
+                idle_time[$container]=$((idle_time[$container] + CHECK_INTERVAL))
+                busy_time[$container]=0
+            fi
+
+            if [[ $container == "srv1" && ${busy_time[$container]} -ge $BUSY_TIME_LIMIT && ! $(docker ps | grep -q "srv2") ]]; then
+                start_container "srv2" "1"
+            elif [[ $container == "srv2" && ${busy_time[$container]} -ge $BUSY_TIME_LIMIT && ! $(docker ps | grep -q "srv3") ]]; then
+                start_container "srv3" "2"
+            fi
+
+            if [[ $container == "srv3" && ${idle_time[$container]} -ge $IDLE_TIME_LIMIT ]]; then
+                stop_container "srv3"
+            elif [[ $container == "srv2" && ${idle_time[$container]} -ge $IDLE_TIME_LIMIT ]]; then
+                stop_container "srv2"
+            fi
+        fi
+    done
+
+    # Sleep before the next check
+    sleep $CHECK_INTERVAL
+done

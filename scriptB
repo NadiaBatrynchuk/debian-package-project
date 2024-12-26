@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SERVER_URL="http://localhost"
+MIN_DELAY=5
+MAX_DELAY=10
+
+make_request() {
+    echo "Sending HTTP request to $SERVER_URL..."
+    curl -s $SERVER_URL > /dev/null &
+}
+
+while true; do
+    make_request
+    sleep $((RANDOM % (MAX_DELAY - MIN_DELAY + 1) + MIN_DELAY))
+done
